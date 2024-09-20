@@ -1,0 +1,6 @@
+{
+  "appService.defaultWebAppToDeploy": "/subscriptions/b0d19d54-6dbd-48a3-8e46-553beca6edd7/resourceGroups/iac_app_service/providers/Microsoft.Web/sites/iacNodeApp",
+  "appService.deploySubpath": ".",
+  "appService.zipIgnorePattern": ["node_modules{,/**}", ".vscode{,/**}"],
+  "appService.showBuildDuringDeployPrompt": false
+}

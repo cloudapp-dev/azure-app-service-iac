@@ -1,0 +1,44 @@
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model StorageAccount {
+  id                 Int         @id @default(autoincrement()) // Primary key
+  userId             String // The user ID
+  storageAccountName String // Name of the storage account
+  resourceGroup      String // Resource group
+  accessKey          String? // Access key for the storage account
+  createdAt          DateTime    @default(now()) // Creation date
+  containers         Container[] // Relation to Container model
+
+  @@unique([userId, storageAccountName]) // Unique constraint to ensure no duplicate storage accounts for a user
+}
+
+model Container {
+  id               Int            @id @default(autoincrement()) // Primary key
+  containerName    String // Name of the container
+  storageAccountId Int // Foreign key to StorageAccount
+  createdAt        DateTime       @default(now()) // Creation date
+  storageAccount   StorageAccount @relation(fields: [storageAccountId], references: [id]) // Relation to StorageAccount
+
+  @@unique([storageAccountId, containerName]) // Unique constraint to ensure no duplicate container names within a storage account
+}
