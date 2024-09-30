@@ -16,19 +16,28 @@ generator client {
 }
 
 datasource db {
-  provider     = "postgresql"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // relationMode = "prisma"
+}
+
+model ResourceGroup {
+  id              Int              @id @default(autoincrement()) // Primary key
+  userId          String           @default("0") // The user ID
+  name            String           @unique // Name of the resource group, unique
+  createdAt       DateTime         @default(now()) // Creation date
+  storageAccounts StorageAccount[] // Relation to StorageAccount model
 }
 
 model StorageAccount {
-  id                 Int         @id @default(autoincrement()) // Primary key
+  id                 Int           @id @default(autoincrement()) // Primary key
   userId             String // The user ID
   storageAccountName String // Name of the storage account
-  resourceGroup      String // Resource group
+  resourceGroupId    Int // Foreign key to ResourceGroup
   accessKey          String? // Access key for the storage account
-  createdAt          DateTime    @default(now()) // Creation date
+  createdAt          DateTime      @default(now()) // Creation date
   containers         Container[] // Relation to Container model
+  resourceGroup      ResourceGroup @relation(fields: [resourceGroupId], references: [id], onDelete: Cascade) // Relation to ResourceGroup
 
   @@unique([userId, storageAccountName]) // Unique constraint to ensure no duplicate storage accounts for a user
 }
@@ -38,7 +47,15 @@ model Container {
   containerName    String // Name of the container
   storageAccountId Int // Foreign key to StorageAccount
   createdAt        DateTime       @default(now()) // Creation date
-  storageAccount   StorageAccount @relation(fields: [storageAccountId], references: [id]) // Relation to StorageAccount
+  storageAccount   StorageAccount @relation(fields: [storageAccountId], references: [id], onDelete: Cascade) // Relation to StorageAccount
 
   @@unique([storageAccountId, containerName]) // Unique constraint to ensure no duplicate container names within a storage account
+}
+
+model Operations {
+  id            Int      @id @default(autoincrement()) // Primary key
+  resourcegroup String // Name of the RGGroup
+  creation      String   @default("NoOps") // Creation of the resource group
+  deletion      String   @default("NoOps") // Deletion of the resource group
+  createdAt     DateTime @default(now()) // Creation date
 }
