@@ -56,23 +56,45 @@ export const createStorageAccount = async (req: Request, res: Response) => {
       "Storage Blob Data Contributor"
     );
 
-    // Save the StorageAccount and Container to the database
-    const savedStorageAccount = await prisma.storageAccount.create({
+    // Save the ResourceGroup to the database
+    const savedResourceGroup = await prisma.resourceGroup.create({
       data: {
+        name: resourceGroupName,
         userId: user_az_id,
-        storageAccountName: accountName,
-        resourceGroup: resourceGroupName,
-        accessKey: accessKey, // Save the access key
-        containers: {
+        storageAccounts: {
           create: {
-            containerName: containerName,
+            userId: user_az_id,
+            storageAccountName: accountName,
+            accessKey: accessKey, // Save the access key
+            containers: {
+              create: {
+                containerName: containerName,
+              },
+            },
           },
         },
       },
     });
 
+    const operationGetResult = await prisma.operations.findFirst({
+      where: {
+        resourcegroup: resourceGroupName,
+      },
+    });
+
+    const creationvalue = "Success";
+
+    const operationResult = await prisma.operations.update({
+      where: {
+        id: operationGetResult?.id,
+      },
+      data: {
+        creation: creationvalue,
+      },
+    });
+
     console.log(
-      `Storage account "${savedStorageAccount.storageAccountName}" for user "${savedStorageAccount.userId}" saved to PostgreSQL successfully.`
+      `Storage account "${accountName}" for user "${user_az_id}" saved to PostgreSQL successfully.`
     );
 
     // Send an email to the user
@@ -126,7 +148,7 @@ export const deleteResourceGroupsByTag = async (
   req: Request,
   res: Response
 ) => {
-  const { tagKey, tagValue } = req.body;
+  const { tagKey, tagValue, resourceGroupName } = req.body;
 
   if (!tagKey || !tagValue) {
     return res.status(400).send("tagKey and tagValue are required.");
@@ -134,6 +156,23 @@ export const deleteResourceGroupsByTag = async (
 
   try {
     const message = await deleteResourceGroups(tagKey, tagValue);
+
+    const operationGetResult = await prisma.operations.findFirst({
+      where: {
+        resourcegroup: resourceGroupName,
+      },
+    });
+
+    const creationvalue = "Success";
+
+    const operationResult = await prisma.operations.update({
+      where: {
+        id: operationGetResult?.id,
+      },
+      data: {
+        deletion: creationvalue,
+      },
+    });
     res.status(200).send(message);
   } catch (error) {
     console.error(error);
