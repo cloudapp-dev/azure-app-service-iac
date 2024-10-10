@@ -90,6 +90,7 @@ export const createStorageAccount = async (req: Request, res: Response) => {
       },
       data: {
         creation: creationvalue,
+        updatedAt: new Date(),
       },
     });
 
@@ -186,6 +187,7 @@ export const deleteResourceGroupsByTag = async (
       },
       data: {
         deletion: creationvalue,
+        updatedAt: new Date(),
       },
     });
 
