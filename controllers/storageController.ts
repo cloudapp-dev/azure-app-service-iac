@@ -148,14 +148,29 @@ export const deleteResourceGroupsByTag = async (
   req: Request,
   res: Response
 ) => {
-  const { tagKey, tagValue, resourceGroupName } = req.body;
+  const { tagKey, tagValue, resourceGroupName, user_email } = req.body;
 
-  if (!tagKey || !tagValue) {
-    return res.status(400).send("tagKey and tagValue are required.");
+  if (!tagKey || !tagValue || !user_email) {
+    return res
+      .status(400)
+      .send("tagKey, tagValue and user_email are required.");
   }
 
   try {
     const message = await deleteResourceGroups(tagKey, tagValue);
+
+    const RgGroupId = await prisma.resourceGroup.findFirst({
+      where: {
+        name: resourceGroupName,
+      },
+    });
+
+    // Remove the Storage Account entry from the database
+    const deleteRgGroup = await prisma.resourceGroup.delete({
+      where: {
+        id: RgGroupId?.id,
+      },
+    });
 
     const operationGetResult = await prisma.operations.findFirst({
       where: {
@@ -173,6 +188,17 @@ export const deleteResourceGroupsByTag = async (
         deletion: creationvalue,
       },
     });
+
+    console.log(
+      `Rg Group "${deleteRgGroup.name}" removed from PostgreSQL database successfully.`
+    );
+
+    await sendEmail(
+      user_email,
+      "Your Azure Storage Account has been deleted",
+      `Hello, your resource group "${resourceGroupName}" has been successfully deleted`
+    );
+
     res.status(200).send(message);
   } catch (error) {
     console.error(error);

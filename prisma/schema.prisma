@@ -58,4 +58,5 @@ model Operations {
   creation      String   @default("NoOps") // Creation of the resource group
   deletion      String   @default("NoOps") // Deletion of the resource group
   createdAt     DateTime @default(now()) // Creation date
+  updatedAt     DateTime @updatedAt // Last updated date
 }
